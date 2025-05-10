@@ -1,0 +1,177 @@
+<div class="h-full min-h-screen w-screen flex flex-col gap-5 p-20">
+  <div class="header flex flex-col gap-2 w-full">
+    <h1 class="font-bold text-4xl">Dashboard</h1>
+    <p class="w-full font-normal text-xl text-gray-500">Last updated 16 Sep 2024, 10:24PM GMT+8</p>
+  </div>
+  <div class="summary w-full flex gap-4 bg-white rounded-2xl">
+    <div class="total flex-1 h-max p-10">
+      @defer (when currentYearTotal()){
+      <ng-container [ngTemplateOutlet]="summaryCardTpl"
+        [ngTemplateOutletContext]="{$implicit:currentYearTotal()}"></ng-container>
+      }
+      @placeholder {
+      <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '200px' }">
+      </ngx-skeleton-loader>
+      }
+      @loading {
+      <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '200px' }">
+      </ngx-skeleton-loader>
+      }
+    </div>
+    <div class="energy-consumption flex-1 h-max p-10">
+      @defer (when currentYearEnergyConsumption()){
+      <ng-container [ngTemplateOutlet]="summaryCardTpl"
+        [ngTemplateOutletContext]="{$implicit:currentYearEnergyConsumption()}"></ng-container>
+      } @placeholder {
+      <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '200px' }">
+      </ngx-skeleton-loader>
+      }
+      @loading {
+      <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '200px' }">
+      </ngx-skeleton-loader>
+      }
+    </div>
+
+  </div>
+  <div class="statistics flex w-full justify-between gap-10">
+    <div class="chart flex flex-col justify-between p-6 h-max flex-1 bg-white rounded-2xl">
+      <div class="header flex justify-between">
+        <h1 class="font-semibold text-2xl">Emissions summary</h1>
+        <div class="selections flex gap-2">
+          <div class="business-unit-select">
+            <mat-form-field appearance="outline" class="custom-select w-fit">
+              <mat-select class="w-fit" [value]="'all'" (selectionChange)="onBuChanges($event)">
+                @for(bu of businessUnits; track bu){
+                <mat-option [value]="bu?.value">
+                  {{bu?.label}}
+                </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="custom-select w-fit">
+            <mat-icon matPrefix class="flex items-center h-full">calendar_today
+            </mat-icon>
+            <mat-select class="w-fit" [value]="currentYear " (selectionChange)="onSummaryYearChange($event)">
+              @for(year of years; track year){
+              <mat-option [value]="year">
+                {{year}}
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="chart flex items-start justify-center gap-6 ">
+        <div class="flex-1">
+          @if (!loading()){
+          <app-donut-chart data-donut-chart [data]="emissions()" [title]="chartTitle()">
+          </app-donut-chart>
+          } @else {
+          <ngx-skeleton-loader appearance="" [theme]="{ width: '500px', height: '500px',  'border-radius': '250px'  }">
+          </ngx-skeleton-loader>
+          }
+
+
+        </div>
+        <div class="w-1/3 pt-8">
+          @if(!loading()){
+          @for (category of categoryLegends(); track $index) {
+          <app-scope-item [title]="category?.title!" [color]="category?.color!"
+            [value]="category?.value!"></app-scope-item>
+          }
+          } @else {
+          <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '50px' }">
+          </ngx-skeleton-loader>
+          <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '50px' }">
+          </ngx-skeleton-loader>
+          <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '50px' }">
+          </ngx-skeleton-loader>
+
+          }
+        </div>
+      </div>
+    </div>
+    <div class="compare-to p-6 bg-white flex-1 flex flex-col rounded-2xl">
+      <div class="header flex justify-between w-full">
+        <div class="font-semibold text-2xl">Compare to</div>
+        <div class="year-selection">
+          <!--<ng-container [ngTemplateOutlet]="yearSelectionTpl"
+            [ngTemplateOutletContext]="{$implicit:{defaultValue: currentYear - 1,selectionChangeCallback:onCompareToYearChange}}"></ng-container>-->
+          <mat-form-field appearance="outline" class="custom-select w-fit">
+            <mat-icon matPrefix class="flex items-center h-full">calendar_today
+            </mat-icon>
+            <mat-select class="w-fit" [value]="comparedToYear()" (selectionChange)="onCompareToYearChange($event)">
+              @for(year of years; track year){
+              <mat-option [value]="year">
+                {{year}}
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="content w-full flex flex-col gap-6">
+        @if(!loading() && !compareWithLoading()){
+        @for(item of compareWithValues(); track item){
+        <ng-container [ngTemplateOutlet]="valueTpl" [ngTemplateOutletContext]="{$implicit:item }"></ng-container>
+        }
+        } @else {
+        <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '40px' }">
+        </ngx-skeleton-loader>
+        <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '40px' }">
+        </ngx-skeleton-loader>
+        <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '40px' }">
+        </ngx-skeleton-loader>
+        <ngx-skeleton-loader appearance="" [theme]="{ width: '100%', height: '40px' }">
+        </ngx-skeleton-loader>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<ng-template #summaryCardTpl let-data>
+  <div class="w-full h-full flex gap-3 items-start p-4 rounded-2xl">
+    <div class="icon p-4 bg-green-200 rounded-full h-fit w-fit">
+      <mat-icon>{{data?.iconName}}</mat-icon>
+    </div>
+    <div class="information h-max flex flex-col gap-2">
+      <div class="text-md font-normal">{{data?.title}}</div>
+      <div class="text-lg font-semibold">{{data?.value | number }}</div>
+      <div class="text-md font-normal">{{data?.compareWithValue | ratioPercentage}}</div>
+    </div>
+  </div>
+</ng-template>
+
+
+<ng-template #yearSelectionTpl let-data>
+  <mat-form-field appearance="outline" class="custom-select w-fit">
+    <mat-icon matPrefix class="flex items-center h-full">calendar_today
+    </mat-icon>
+    <mat-select class="w-fit" [value]="data?.defaultValue" (selectionChange)="data?.selectionChangeCallback($event)">
+      @for(year of years; track year){
+      <mat-option [value]="year">
+        {{year}}
+      </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</ng-template>
+
+<ng-template #valueTpl let-data>
+  <div class="flex flex-col h-fit gap-2 w-full">
+    <div class="title text-[16px] font-normal text-gray-500">{{data?.title}}</div>
+    <div class="value flex gap-2 p-2 items-center justify-start">
+      <div class="number text-2xl font-semibold">{{data?.value | number}}</div>
+      <div
+        [class]="`ratio p-3  text-green-950 rounded-md text-[20px] ${data?.ratio >= 1 ? 'bg-red-100' : 'bg-green-100'}`">
+        {{data?.ratio | ratioPercentage}}
+      </div>
+    </div>
+  </div>
+</ng-template>
