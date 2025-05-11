@@ -5,6 +5,7 @@ import { EmissionCategoryEnum } from '../shared/enums/emissions-enum';
 import { IEmissionsData } from '../shared/interfaces/emission.interface';
 import { EmissionsService } from '../shared/services/emission.service';
 import { getCurrentYear } from '../utils/date.utils';
+import { percent } from '@amcharts/amcharts5';
 
 // Define the state interface
 export interface EmissionsState {
@@ -95,7 +96,13 @@ export const EmissionsStore = signalStore(
     getCompareWithRatioInTotal: computed(() => {
       const compareWithAnnualTotal = store.compareWithAnnualTotal();
       const annualTotal = store.annualTotal();
-      return compareWithAnnualTotal > 0 ? annualTotal / compareWithAnnualTotal : 0;
+      return annualTotal > 0 ? {
+        percentage: compareWithAnnualTotal / annualTotal,
+        gapNumber: compareWithAnnualTotal - annualTotal
+      } : {
+        percentage: 0,
+        gapNumber: 0
+      };
     }),
     getCompareWithRatioInCategory: computed(() => {
       const compareWithTotalsInCategory = store.compareWithTotalsInCategory();
@@ -106,20 +113,26 @@ export const EmissionsStore = signalStore(
       }
 
       return Object.keys(compareWithTotalsInCategory).reduce(
-        (acc: Record<EmissionCategoryEnum, number>, key) => {
+        (acc: Record<EmissionCategoryEnum, { percentage: number, gapNumber: number }>, key) => {
           const category = key as EmissionCategoryEnum;
           const compareValue = compareWithTotalsInCategory[category];
           const totalValue = totalsInCategory[category];
 
-          if (compareValue !== 0 && totalValue !== undefined) {
-            acc[category] = totalValue / compareValue;
+          if (totalValue !== 0 && compareValue !== undefined) {
+            acc[category] = {
+              percentage: compareValue / totalValue,
+              gapNumber: compareValue - totalValue,
+            };
           } else {
-            acc[category] = 0; // or handle as needed
+            acc[category] = {
+              percentage: 0,
+              gapNumber: 0,
+            }; // or handle as needed
           }
 
           return acc;
         },
-        {} as Record<EmissionCategoryEnum, number>
+        {} as Record<EmissionCategoryEnum, { percentage: number, gapNumber: number }>
       );
     }),
   })),

@@ -143,7 +143,23 @@
     <div class="information h-max flex flex-col gap-2">
       <div class="text-md font-normal">{{data?.title}}</div>
       <div class="text-lg font-semibold">{{data?.value | number }}</div>
-      <div class="text-md font-normal">{{data?.compareWithValue | ratioPercentage}}</div>
+      <div class="text-md font-normal flex gap-1 items-center">
+        <ng-container [ngTemplateOutlet]="ratioTrendingTpl"
+          [ngTemplateOutletContext]="{$implicit: data?.compareWithValue}"></ng-container>
+        @if(data?.compareWithValue > 1){
+        <p class="text-red-600">
+          {{(data?.compareWithValue - 1) * 100 | abs | number:'1.0-2' }}%</p>
+        <p>higher than previous year</p>
+        } @else if (data?.compareWithValue < 1){ <p class="text-green-500">
+          {{(data?.compareWithValue - 1) * 100 | abs | number:'1.0-2' }}%</p>
+          <p>
+          <p>higher than previous year</p>
+          }
+          @else {
+          <p class="text-gray-500">
+            {{(data?.compareWithValue - 1) * 100 | abs | number:'1.0-2' }}% same as previous year</p>
+          }
+      </div>
     </div>
   </div>
 </ng-template>
@@ -166,12 +182,24 @@
 <ng-template #valueTpl let-data>
   <div class="flex flex-col h-fit gap-2 w-full">
     <div class="title text-[16px] font-normal text-gray-500">{{data?.title}}</div>
-    <div class="value flex gap-2 p-2 items-center justify-start">
-      <div class="number text-2xl font-semibold">{{data?.value | number}}</div>
+    <div class="value flex gap-2 p-1 items-center justify-start">
+      <div class="number text-3xl font-semibold">
+        {{data?.value | number}}</div>
       <div
-        [class]="`ratio p-3  text-green-950 rounded-md text-[20px] ${data?.ratio >= 1 ? 'bg-red-100' : 'bg-green-100'}`">
-        {{data?.ratio | ratioPercentage}}
+        [class]="`flex items-center gap-2 ratio p-3  text-green-950 rounded-md text-[20px] ${data?.ratio >= 1 ? 'bg-red-100' : 'bg-green-100'}`">
+        <ng-container [ngTemplateOutlet]="ratioTrendingTpl"
+          [ngTemplateOutletContext]="{$implicit:data?.ratio }"></ng-container>
+        <p>{{data?.gapNumber | abs | number}}</p>
+        <p>{{`(${((data?.ratio - 1) * 100) | abs | number:'1.0-2'}%) ` }}</p>
       </div>
     </div>
   </div>
+</ng-template>
+
+<ng-template #ratioTrendingTpl let-ratio>
+  @if(ratio >1) {
+  <mat-icon class="text-red-600!">trending_up</mat-icon>
+  }
+  @else if(ratio < 1){ <mat-icon class="text-green-500!">trending_down</mat-icon>
+    }
 </ng-template>

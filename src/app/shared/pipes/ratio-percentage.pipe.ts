@@ -17,6 +17,6 @@ export class RatioPercentagePipe implements PipeTransform {
     // Determine if higher or lower
     const direction = ratio > 1 ? 'higher' : 'lower';
 
-    return `${percentChange}% ${direction} than previous year`;
+    return `${percentChange}% ${direction}`;
   }
 }

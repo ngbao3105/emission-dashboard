@@ -14,6 +14,7 @@ import { EmissionCategoryEnum } from '../../shared/enums/emissions-enum';
 import { ScopeItemComponent } from '../../shared/components/scope-item/scope-item.component';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { formatNumberWithCommas } from '../../utils/common.utils';
+import { AbsPipe } from '../../shared/pipes/abs.pipe';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +22,7 @@ import { formatNumberWithCommas } from '../../utils/common.utils';
     CommonModule,
     MatIconModule,
     RatioPercentagePipe,
+    AbsPipe,
     DonutChartComponent,
     ScopeItemComponent,
     MatSelectModule,
@@ -46,10 +48,12 @@ export class DashboardComponent implements OnInit {
     return `Total emissions (tCo2e)\n${formatNumberWithCommas(this.emissionStore.annualTotal())}`
   })
   compareWithTotal = computed(() => {
+    const gapValue = this.emissionStore.getCompareWithRatioInTotal();
     return {
       title: "Total emissions (tCo2e)",
       value: this.emissionStore.compareWithAnnualTotal(),
-      ratio: this.emissionStore.getCompareWithRatioInTotal(),
+      ratio: gapValue?.percentage!,
+      gapNumber: gapValue?.gapNumber!
     }
   });
   categoryLegends = computed(() => {
@@ -63,14 +67,15 @@ export class DashboardComponent implements OnInit {
   })
   compareWithCategory = computed(() => {
     return this.categories?.reduce((acc, category) => {
-      const ratioValue = this.emissionStore.getCompareWithRatioInCategory()?.[category];
+      const gapValue = this.emissionStore.getCompareWithRatioInCategory()?.[category];
       const totalValue = this.emissionStore.compareWithTotalsInCategory()?.[category] || 0;
       return [
         ...acc,
         {
           title: EMISSIONS_CATEGORY[category as EmissionCategoryEnum]?.title,
-          ratio: ratioValue!,
-          value: totalValue
+          ratio: gapValue?.percentage!,
+          gapNumber: gapValue?.gapNumber!,
+          value: totalValue,
         }
       ];
     }, [] as { title: string; value: number, ratio: number }[]);
