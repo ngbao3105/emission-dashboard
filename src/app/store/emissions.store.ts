@@ -55,7 +55,7 @@ export const EmissionsStore = signalStore(
         .reduce((acc, curr) => acc + curr.value, 0);
 
       // Get previous year total
-      const previousYearTotal = emissionsService.getCurrentYearEmissions()
+      const previousYearTotal = emissionsService.getPreviousYearEmissions()
         .reduce((acc, curr) => acc + curr.value, 0);
 
       // Avoid division by zero
